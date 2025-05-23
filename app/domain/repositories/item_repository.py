@@ -8,7 +8,7 @@ class ItemRepository(ABC):
         pass
 
     @abstractmethod
-    def get_by_id(self, item_id: int) -> Optional[Item]:
+    def get_by_id(self, item_id: str) -> Optional[Item]:
         pass
 
     @abstractmethod

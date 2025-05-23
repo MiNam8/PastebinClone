@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from sqlmodel import Field, SQLModel
 from uuid import UUID, uuid4
@@ -10,15 +10,20 @@ class ItemBase(SQLModel):
 
 class Items(ItemBase, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(datetime.UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(datetime.UTC),
-        sa_column_kwargs={"onupdate": lambda: datetime.now(datetime.UTC)}
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)}
     )
 
 class UserBase(SQLModel):
-    username: str = Field(unique=True, index=True)
-    hashed_password: str
+    email: str = Field(unique=True, index=True)
+    password: str
 
 class Users(UserBase, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)}
+    )

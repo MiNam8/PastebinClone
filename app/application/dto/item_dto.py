@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 class ItemCreateDTO(BaseModel):
     title: str
@@ -13,7 +14,7 @@ class ItemUpdateDTO(BaseModel):
     is_active: Optional[bool] = None
 
 class ItemResponseDTO(BaseModel):
-    id: int
+    id: UUID
     title: str
     description: Optional[str]
     is_active: bool

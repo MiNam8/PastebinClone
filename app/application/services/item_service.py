@@ -15,7 +15,7 @@ class ItemService:
         created_item = self._item_repository.create(item)
         return ItemResponseDTO.model_validate(created_item)
 
-    def get_item(self, item_id: int) -> Optional[ItemResponseDTO]:
+    def get_item(self, item_id: str) -> Optional[ItemResponseDTO]:
         item = self._item_repository.get_by_id(item_id)
         if item:
             return ItemResponseDTO.model_validate(item)
@@ -25,7 +25,7 @@ class ItemService:
         items = self._item_repository.get_all(skip, limit)
         return [ItemResponseDTO.model_validate(item) for item in items]
 
-    def update_item(self, item_id: int, item_dto: ItemUpdateDTO) -> Optional[ItemResponseDTO]:
+    def update_item(self, item_id: str, item_dto: ItemUpdateDTO) -> Optional[ItemResponseDTO]:
         item = self._item_repository.get_by_id(item_id)
         if not item:
             return None
@@ -38,5 +38,5 @@ class ItemService:
         updated_item = self._item_repository.update(item)
         return ItemResponseDTO.model_validate(updated_item)
 
-    def delete_item(self, item_id: int) -> bool:
+    def delete_item(self, item_id: str) -> bool:
         return self._item_repository.delete(item_id)

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 @dataclass
@@ -13,7 +13,7 @@ class Item:
 
     @classmethod
     def create(cls, title: str, description: Optional[str] = None) -> 'Item':
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(timezone.utc)
         return cls(
             id=None,
             title=title,
@@ -30,4 +30,4 @@ class Item:
             self.description = description
         if is_active is not None:
             self.is_active = is_active
-        self.updated_at = datetime.now(datetime.UTC)
+        self.updated_at = datetime.now(timezone.utc)

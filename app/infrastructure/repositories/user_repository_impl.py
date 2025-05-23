@@ -3,13 +3,23 @@ from app.domain.entities.user import User
 from app.domain.repositories.user_repository import UserRepository
 from app.infrastructure.database.models import Users as UserModel
 from sqlmodel import select
-
+from app.domain.entities.user import User as UserEntity
 class SQLAlchemyUserRepository(UserRepository):
     def __init__(self, db):
         self.db = db
 
-    def get_by_username(self, username: str):
-        user = self.db.exec(select(UserModel).where(UserModel.username == username)).first()
+    def create(self, user: User) -> UserModel:
+        user_model = UserModel(
+            email=user.email,
+            password=user.password
+        )
+        self.db.add(user_model)
+        self.db.commit()
+        self.db.refresh(user_model)
+        return UserEntity.from_model(user_model)
+
+    def get_by_email(self, email: str) -> UserEntity:
+        user = self.db.exec(select(UserModel).where(UserModel.email == email)).first()
         if not user:
             return None
-        return User(id=user.id, username=user.username, hashed_password=user.hashed_password)
+        return UserEntity.from_model(user)
