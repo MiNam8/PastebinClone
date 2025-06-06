@@ -7,9 +7,12 @@ from app.infrastructure.database.models import Users as UserModel
 from app.application.dto.user_dto import UserCreateDTO
 import uuid
 from fastapi import HTTPException
-SECRET_KEY = "your-secret-key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+import os
+import re
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -33,7 +36,13 @@ class AuthService:
         if self.user_repository.get_by_email(user_dto.email):
             raise HTTPException(status_code=400, detail="Email already registered")
         
+        if not self.validate_email(user_dto.email):
+            raise HTTPException(status_code=400, detail="Invalid email format")
+        
         hashed_password = pwd_context.hash(user_dto.password)
         user = UserEntity.create(user_dto.email, hashed_password)
         self.user_repository.create(user)
         return user
+    
+    def validate_email(self, email: str) -> bool:
+        return re.match(r"[^@]+@[^@]+\.[^@]+", email) is not None

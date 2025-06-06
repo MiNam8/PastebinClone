@@ -9,6 +9,9 @@ import os
 import time
 import uuid
 import random
+from datetime import datetime, timezone
+from sqlmodel import Session
+from typing import Optional
 
 class SQLAlchemyTextRepository(TextRepository):
     def __init__(self, db, redis_client: Redis = None, hash_threshold: int = 10):
@@ -324,3 +327,35 @@ class SQLAlchemyTextRepository(TextRepository):
             }
         except Exception as e:
             return {"status": "unhealthy", "reason": str(e)}
+
+    def get_active_text(self, hash_value: str) -> Optional[TextModel]:
+        """Get text only if it hasn't expired"""
+        statement = select(TextModel).where(
+            TextModel.hash_value == hash_value,
+            # Text is active if expiration_date is None OR expiration_date > now
+            (TextModel.expiration_date.is_(None)) | 
+            (TextModel.expiration_date > datetime.now(timezone.utc))
+        )
+        return self.db.exec(statement).first()
+    
+    def get_all_active_texts(self) -> list[TextModel]:
+        """Get all non-expired texts"""
+        statement = select(TextModel).where(
+            (TextModel.expiration_date.is_(None)) | 
+            (TextModel.expiration_date > datetime.now(timezone.utc))
+        )
+        return self.db.exec(statement).all()
+    
+    def cleanup_expired_texts(self) -> int:
+        """Remove expired texts - run this as a background job"""
+        statement = select(TextModel).where(
+            TextModel.expiration_date.is_not(None),
+            TextModel.expiration_date <= datetime.now(timezone.utc)
+        )
+        expired_texts = self.db.exec(statement).all()
+        
+        for text in expired_texts:
+            self.db.delete(text)
+        
+        self.db.commit()
+        return len(expired_texts)

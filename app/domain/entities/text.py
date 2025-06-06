@@ -37,13 +37,13 @@ class Text:
             updated_at=text_model.updated_at
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict:
         """Convert entity to dictionary for serialization"""
         return {
-            "id": str(self.id),  # Convert UUID to string
+            "id": self.id,
             "location": self.location,
-            "expiration_date": self.expiration_date.isoformat(),  # Convert datetime to ISO string
-            "hash_value": self.hash_value,
+            "expiration_date": self.expiration_date.isoformat() if self.expiration_date else None,
+            "hash_value": getattr(self, 'hash_value', None),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None
         }

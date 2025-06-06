@@ -90,7 +90,7 @@ class TextService:
     
     def get_text_metadata(self, hash_value: str) -> TextEntity:
         """Get text metadata only (no content)"""
-        return self.text_repository.get_text(hash_value)
+        return self.text_repository.get_active_text(hash_value)
     
     def get_text_content_only(self, location: str) -> str:
         """Get text content from storage location"""
@@ -100,7 +100,7 @@ class TextService:
     def get_full_text(self, hash_value: str) -> tuple[TextEntity, str]:
         """Get both metadata and content"""
         # Get metadata from database
-        text_entity = self.text_repository.get_text(hash_value)
+        text_entity = self.text_repository.get_active_text(hash_value)
         if not text_entity:
             return None, None
         

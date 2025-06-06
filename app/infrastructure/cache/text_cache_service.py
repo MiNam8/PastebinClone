@@ -66,7 +66,7 @@ class TextCacheService:
         self.redis.setex(
             f"{self.metadata_prefix}{hash_value}",
             ttl,
-            json.dumps(text_entity.to_dict())
+            text_entity.model_dump_json()
         )
     
     def get_text_content(self, hash_value: str) -> str:
@@ -121,7 +121,7 @@ class TextCacheService:
         
         # Use Redis pipeline for atomic multi-operation
         pipe = self.redis.pipeline()
-        pipe.setex(f"{self.metadata_prefix}{hash_value}", ttl, json.dumps(metadata.to_dict()))
+        pipe.setex(f"{self.metadata_prefix}{hash_value}", ttl, metadata.model_dump_json())
         pipe.setex(f"{self.content_prefix}{hash_value}", ttl, content)
         pipe.execute()  # Atomic execution
 
