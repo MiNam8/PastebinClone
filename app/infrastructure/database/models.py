@@ -34,7 +34,10 @@ class Users(UserBase, table=True):
 
 class TextBase(SQLModel):
     location: str
-    expiration_date: datetime
+    expiration_date: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True))
+    )
     hash_value: str = Field(primary_key=True)
 
 class Texts(TextBase, table=True):

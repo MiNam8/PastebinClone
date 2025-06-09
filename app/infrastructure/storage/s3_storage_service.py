@@ -44,6 +44,7 @@ class S3StorageService:
     def get_text_content(self, file_key: str) -> str:
         """Get text content from S3"""
         try:
+            print(f"Getting text content from S3: {file_key}, {self.bucket_name}")
             response = self.s3_client.get_object(
                 Bucket=self.bucket_name,
                 Key=file_key
