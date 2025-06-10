@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # Database service
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-pastebin}
+      POSTGRES_USER: ${DATABASE_USER:-pastebin_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-pastebin_pass}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-pastebin_user}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis service
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: redis-server --appendonly yes
+
+  # Migration service
+  migrate:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${DATABASE_USER:-pastebin_user}:${DATABASE_PASSWORD:-pastebin_pass}@db:5432/${DATABASE_NAME:-pastebin}
+      REDIS_URL: redis://redis:6379
+    command: make migrate
+    restart: "no"  # Run once and exit
+
+  # Your app service  
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${DATABASE_USER:-pastebin_user}:${DATABASE_PASSWORD:-pastebin_pass}@db:5432/${DATABASE_NAME:-pastebin}
+      REDIS_URL: redis://redis:6379
+
+volumes:
+  postgres_data:
+  redis_data:

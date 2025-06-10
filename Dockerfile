@@ -1,5 +1,5 @@
-# Use Python 3.11 slim image
-FROM python:3.11-slim as base
+# Use Python 3.12 slim image
+FROM python:3.12-slim as base
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Configure Poetry
 ENV POETRY_NO_INTERACTION=1 \
     POETRY_VENV_IN_PROJECT=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
+    POETRY_CACHE_DIR=/app/.cache
 
 # Create non-root user for security
 RUN groupadd -r appuser && useradd -r -g appuser appuser
@@ -31,7 +31,7 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock* ./
 
 # Install dependencies
-RUN poetry install --only=main && rm -rf $POETRY_CACHE_DIR
+RUN poetry install --only=main
 
 # Copy application code
 COPY Makefile ./
@@ -39,8 +39,9 @@ COPY app/ ./app/
 COPY alembic.ini ./
 COPY migrations/ ./migrations/
 
-# Change ownership to non-root user
-RUN chown -R appuser:appuser /app
+# Create cache directory and change ownership
+RUN mkdir -p /app/.cache && chown -R appuser:appuser /app
+
 USER appuser
 
 # Expose port
